@@ -24,6 +24,16 @@ seat_class_names = [
     line.strip()
     for line in open("model.seat/labels.txt", "r")
 ]
+# -------------------------
+# Load Mudguard Model
+# -------------------------
+mudguard_model = tf.saved_model.load("model.mudguard")
+mudguard_infer = mudguard_model.signatures["serving_default"]
+
+mudguard_class_names = [
+    line.strip()
+    for line in open("model.mudguard/labels.txt", "r")
+]
 
 st.title("🚲 Cycle Resale Price Estimator")
 
@@ -42,9 +52,15 @@ seat_file = st.file_uploader(
     key="seat",
     type=["jpg", "jpeg", "png"]
 )
+mudguard_file = st.file_uploader(
+    "Upload Mudguard Close-up Image (Mudguard Detection)",
+    key="mudguard",
+    type=["jpg", "jpeg", "png"]
+)
 
 rust_confidence = 0
 seat_confidence_score = 0
+mudguard_confidence_score = 0
 
 # -------------------------
 # Rust Prediction
@@ -98,6 +114,29 @@ if seat_file is not None:
         seat_confidence_score = seat_confidence
 
 
+if mudguard_file is not None:
+    mudguard_image = Image.open(mudguard_file).convert("RGB")
+    st.image(mudguard_image, caption="Mudguard Image")
+
+    mudguard_image = mudguard_image.resize((224, 224))
+    mudguard_array = np.asarray(mudguard_image)
+    mudguard_normalized = (mudguard_array.astype(np.float32) / 127.5) - 1
+    mudguard_tensor = tf.convert_to_tensor(mudguard_normalized[np.newaxis, ...])
+
+    mudguard_prediction = mudguard_infer(mudguard_tensor)
+    mudguard_values = list(mudguard_prediction.values())[0].numpy()
+
+    mudguard_index = np.argmax(mudguard_values)
+    mudguard_label = mudguard_class_names[mudguard_index]
+    mudguard_confidence = float(mudguard_values[0][mudguard_index])
+
+    st.write("Mudguard Prediction:", mudguard_label)
+    st.write("Mudguard Confidence:", round(mudguard_confidence * 100, 2), "%")
+
+    # Assuming class 0 = Missing Mudguard
+    if mudguard_index == 0:
+        mudguard_confidence_score = mudguard_confidence
+
 # -------------------------
 # Price Calculation
 # -------------------------
@@ -112,14 +151,17 @@ if st.button("Calculate Final Price"):
 
     rust_deduction = 500 * rust_confidence
     seat_deduction = 400 * seat_confidence_score
+    mudguard_deduction = 250 * mudguard_confidence_score
 
     final_price = max(
-        depreciated_value - rust_deduction - seat_deduction,
+        depreciated_value - rust_deduction - seat_deduction - mudguard_deduction,
         0
     )
 
     st.write("Value after depreciation: ₹", round(depreciated_value, 2))
     st.write("Rust Deduction: ₹", round(rust_deduction, 2))
     st.write("Seat Deduction: ₹", round(seat_deduction, 2))
+    st.write("Mudguard Deduction: ₹", round(mudguard_deduction, 2))
+
 
     st.success(f"Final Estimated Price: ₹ {round(final_price, 2)}")
