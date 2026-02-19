@@ -38,8 +38,12 @@ if uploaded_file is not None:
     st.write("Prediction:", predicted_label)
     st.write("Confidence:", round(confidence_score * 100, 2), "%")
 
-    if "rust" in predicted_label.lower():
+    # Apply deduction only if rust class
+    if index == 0:   # Change if rust class index is different
         rust_confidence = confidence_score
+    else:
+        rust_confidence = 0
+
 
 if st.button("Calculate Final Price"):
     total_months = years_used * 12 + months_used
@@ -52,6 +56,6 @@ if st.button("Calculate Final Price"):
     rust_deduction = 500 * rust_confidence
     final_price = max(depreciated_value - rust_deduction, 0)
 
-    st.write("Depreciated Value: ₹", round(depreciated_value, 2))
+    st.write("Value after depreciation: ₹", round(depreciated_value, 2))
     st.write("Rust Deduction: ₹", round(rust_deduction, 2))
     st.success(f"Final Estimated Price: ₹ {round(final_price, 2)}")
