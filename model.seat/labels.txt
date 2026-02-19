@@ -1,0 +1,2 @@
+0 Damaged Seat
+1 Normal Seat
