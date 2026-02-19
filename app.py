@@ -4,10 +4,10 @@ from PIL import Image
 import tensorflow as tf
 
 # Load SavedModel
-model = tf.saved_model.load("model.savedmodel")
+model = tf.saved_model.load("model.rust")
 infer = model.signatures["serving_default"]
 
-class_names = [line.strip() for line in open("labels.txt", "r").readlines()]
+class_names = [line.strip() for line in open("model.rust/labels.txt", "r").readlines()]
 
 st.title("🚲 Cycle Rust Detector")
 
@@ -20,7 +20,7 @@ uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
 rust_confidence = 0
 
 if uploaded_file is not None:
-    image = Image.open(uploaded_fsile).convert("RGB")
+    image = Image.open(uploaded_file).convert("RGB")
     st.image(image)
 
     image = image.resize((224, 224))
