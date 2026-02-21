@@ -158,10 +158,13 @@ if st.button("Calculate Final Price"):
         0
     )
 
-    st.write("Value after depreciation: ₹", round(depreciated_value, 2))
+    st.write("Value after depreciation (15% Per Year): ₹", round(depreciated_value, 2))
     st.write("Rust Deduction: ₹", round(rust_deduction, 2))
+    st.write("This model deducts ₹ 500 Per cycle if rust is detected * confidence %")
     st.write("Seat Deduction: ₹", round(seat_deduction, 2))
+    st.write("This model deducts ₹ 400 Per cycle if seat damage is detected * confidence %")
     st.write("Mudguard Deduction: ₹", round(mudguard_deduction, 2))
+    st.write("This model deducts ₹ 250 Per cycle if mudguard is not detected * confidence %")
 
 
     st.success(f"Final Estimated Price: ₹ {round(final_price, 2)}")
